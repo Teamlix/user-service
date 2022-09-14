@@ -1,8 +1,8 @@
 app:
 mongodb:
-  url: mongodb://user:user@localhost:27017/teamlix # mongo connection string
+  url: # mongo connection string
 redis:
-  host: localhost # redis host
-  port: 6379 # redis port
-  db: 0 # redis db
-  password:  # redis password
+  host: # redis host
+  port: # redis port
+  db: # redis db
+  password: # redis password
