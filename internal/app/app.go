@@ -14,6 +14,7 @@ import (
 	log "github.com/teamlix/user-service/internal/pkg/logger"
 	"github.com/teamlix/user-service/internal/pkg/mongo"
 	"github.com/teamlix/user-service/internal/pkg/redis"
+	"github.com/teamlix/user-service/internal/pkg/validator"
 	"github.com/teamlix/user-service/internal/repository"
 	"github.com/teamlix/user-service/internal/service"
 )
@@ -50,7 +51,9 @@ func Run(configPath string) error {
 
 	b := bcrypt.NewBcrypt(10)
 
-	s := service.NewService(repo, c, b)
+	v := validator.NewValidator()
+
+	s := service.NewService(repo, c, b, v)
 
 	// run grpc server
 	go func() {
