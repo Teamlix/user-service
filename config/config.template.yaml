@@ -1,0 +1,12 @@
+app:
+mongodb:
+  url: # mongo connection string
+redis:
+  host: # redis host
+  port: # redis port
+  db: # redis db
+  password: # redis password
+grpc:
+  server: 
+    host: # grpc host
+    port: # grpc port
