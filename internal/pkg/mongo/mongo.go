@@ -12,7 +12,7 @@ import (
 const usersCollection = "users"
 
 type Mongo struct {
-	Client *drv.Client
+	client *drv.Client
 	Users  *drv.Collection
 }
 
@@ -31,11 +31,11 @@ func NewMongo(ctx context.Context, connString string) (*Mongo, error) {
 	users := db.Collection(usersCollection)
 
 	return &Mongo{
-		Client: client,
+		client: client,
 		Users:  users,
 	}, nil
 }
 
 func (m *Mongo) Disconnect(ctx context.Context) error {
-	return m.Client.Disconnect(ctx)
+	return m.client.Disconnect(ctx)
 }

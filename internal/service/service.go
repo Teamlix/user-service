@@ -2,17 +2,20 @@ package service
 
 import (
 	"github.com/teamlix/user-service/internal/cache"
+	"github.com/teamlix/user-service/internal/pkg/bcrypt"
 	"github.com/teamlix/user-service/internal/repository"
 )
 
 type Service struct {
-	Repository *repository.Repository
-	Cache      *cache.Cache
+	repository *repository.Repository
+	cache      *cache.Cache
+	bcrypt     *bcrypt.Bcrypt
 }
 
-func NewService(repo *repository.Repository, cache *cache.Cache) *Service {
+func NewService(repo *repository.Repository, cache *cache.Cache, b *bcrypt.Bcrypt) *Service {
 	return &Service{
-		Repository: repo,
-		Cache:      cache,
+		repository: repo,
+		cache:      cache,
+		bcrypt:     b,
 	}
 }
