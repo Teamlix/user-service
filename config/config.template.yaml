@@ -6,3 +6,7 @@ redis:
   port: # redis port
   db: # redis db
   password: # redis password
+grpc:
+  server: 
+    host: # grpc host
+    port: # grpc port
