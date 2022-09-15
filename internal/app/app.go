@@ -8,6 +8,7 @@ import (
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/teamlix/user-service/internal/cache"
+	"github.com/teamlix/user-service/internal/pkg/bcrypt"
 	"github.com/teamlix/user-service/internal/pkg/config"
 	grpc_server "github.com/teamlix/user-service/internal/pkg/grpc/server"
 	log "github.com/teamlix/user-service/internal/pkg/logger"
@@ -47,7 +48,9 @@ func Run(configPath string) error {
 
 	c := cache.NewCache(rCon)
 
-	s := service.NewService(repo, c)
+	b := bcrypt.NewBcrypt(10)
+
+	s := service.NewService(repo, c, b)
 
 	// run grpc server
 	go func() {
