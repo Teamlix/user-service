@@ -1,24 +1,31 @@
 package service
 
-import (
-	"github.com/teamlix/user-service/internal/cache"
-	"github.com/teamlix/user-service/internal/pkg/bcrypt"
-	"github.com/teamlix/user-service/internal/pkg/validator"
-	"github.com/teamlix/user-service/internal/repository"
-)
+type Repository interface {
+}
+
+type Cache interface {
+}
+
+type Bcrypt interface {
+}
+
+type Validator interface {
+	ValidateSignUp(email, name, password, repeatedPassword string) error
+	ValidateSignIn(email, password, repeatedPassword string) error
+}
 
 type Service struct {
-	repository *repository.Repository
-	cache      *cache.Cache
-	bcrypt     *bcrypt.Bcrypt
-	validator  *validator.Validator
+	repository Repository
+	cache      Cache
+	bcrypt     Bcrypt
+	validator  Validator
 }
 
 func NewService(
-	repo *repository.Repository,
-	cache *cache.Cache,
-	b *bcrypt.Bcrypt,
-	v *validator.Validator,
+	repo Repository,
+	cache Cache,
+	b Bcrypt,
+	v Validator,
 ) *Service {
 	return &Service{
 		repository: repo,
