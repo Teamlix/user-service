@@ -5,7 +5,7 @@ type Config struct {
 	Redis struct {
 		Host     string `yaml:"host" env:"REDIS_HOST" env-description:"Database host"`
 		Port     string `yaml:"port" env:"REDIS_PORT" env-description:"Database port"`
-		DB       string `yaml:"db" env:"REDIS_DB" env-description:"Database user name"`
+		DB       int    `yaml:"db" env:"REDIS_DB" env-description:"Database user name"`
 		Password string `yaml:"password" env:"REDIS_PASSWORD" env-description:"Database user password"`
 	} `yaml:"redis"`
 	MongoDB struct {
