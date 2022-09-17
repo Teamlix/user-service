@@ -1,11 +1,11 @@
-package grpc_errors
+package grpc_server
 
 import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func GetGrpcError(e error) error {
+func makeStatusError(e error) error {
 	var code codes.Code
 	switch e.Error() {
 	case "username has wrong format":
@@ -16,6 +16,10 @@ func GetGrpcError(e error) error {
 		code = codes.InvalidArgument
 	case "passwords are not equal":
 		code = codes.InvalidArgument
+	case "provided email already exists":
+		code = codes.AlreadyExists
+	case "provided user name already exists":
+		code = codes.AlreadyExists
 	default:
 		code = codes.Internal
 	}
