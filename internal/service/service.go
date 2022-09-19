@@ -18,6 +18,8 @@ type Repository interface {
 }
 
 type Cache interface {
+	SetAccessToken(ctx context.Context, userID, token string) error
+	SetRefreshToken(ctx context.Context, userID, token string) error
 }
 
 type Bcrypt interface {
@@ -113,26 +115,35 @@ func (s *Service) SignUp(ctx context.Context, name, email, password, repeatedPas
 		return t, err
 	}
 
-	gr := errgroup.Group{}
+	eg = errgroup.Group{}
 	var accessToken, refreshToken string
-	gr.Go(func() error {
+	eg.Go(func() error {
 		accessToken, err = s.tokens.SignAccessToken(id, userRole)
 		return err
 	})
-	gr.Go(func() error {
+	eg.Go(func() error {
 		refreshToken, err = s.tokens.SignRefreshToken(id)
 		return err
 	})
+	err = eg.Wait()
+	if err != nil {
+		return t, err
+	}
 
-	err = gr.Wait()
+	eg = errgroup.Group{}
+	eg.Go(func() error {
+		return s.cache.SetAccessToken(ctx, id, accessToken)
+	})
+	eg.Go(func() error {
+		return s.cache.SetRefreshToken(ctx, id, refreshToken)
+	})
+	err = eg.Wait()
 	if err != nil {
 		return t, err
 	}
 
 	t.AccessToken = accessToken
 	t.RefreshToken = refreshToken
-
-	// TODO: save to cache
 
 	return t, nil
 }
