@@ -6,8 +6,10 @@ import (
 )
 
 type user struct {
-	ID   primitive.ObjectID `bson:"_id"`
-	Name string             `bson:"name"`
+	ID       primitive.ObjectID `bson:"_id"`
+	Name     string             `bson:"name"`
+	Email    string             `bson:"email"`
+	Password string             `bson:"password"`
 }
 
 func (u *user) ToDomain() domain.User {

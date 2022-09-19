@@ -20,6 +20,10 @@ func makeStatusError(e error) error {
 		code = codes.AlreadyExists
 	case "provided user name already exists":
 		code = codes.AlreadyExists
+	case "unauthorized":
+		code = codes.Unauthenticated
+	case "token expired":
+		code = codes.Unauthenticated
 	default:
 		code = codes.Internal
 	}
