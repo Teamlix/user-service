@@ -53,6 +53,7 @@ func (r *Repository) GetUserByEmail(ctx context.Context, email string) (*domain.
 
 func (r *Repository) AddUser(ctx context.Context, name, email, password string) (string, error) {
 	user := user{
+		ID:       primitive.NewObjectID(),
 		Name:     name,
 		Email:    email,
 		Password: password,
