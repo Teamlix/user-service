@@ -11,6 +11,7 @@ import (
 	"github.com/teamlix/user-service/internal/pkg/bcrypt"
 	"github.com/teamlix/user-service/internal/pkg/config"
 	grpc_server "github.com/teamlix/user-service/internal/pkg/grpc/server"
+	"github.com/teamlix/user-service/internal/pkg/jwt"
 	log "github.com/teamlix/user-service/internal/pkg/logger"
 	"github.com/teamlix/user-service/internal/pkg/mongo"
 	"github.com/teamlix/user-service/internal/pkg/redis"
@@ -53,7 +54,9 @@ func Run(configPath string) error {
 
 	v := validator.NewValidator()
 
-	s := service.NewService(repo, c, b, v)
+	t := jwt.NewJWT(cfg.Jwt.Access.Secret, cfg.Jwt.Refresh.Secret, cfg.Jwt.Access.Expire, cfg.Jwt.Refresh.Expire)
+
+	s := service.NewService(repo, c, b, v, t)
 
 	// run grpc server
 	go func() {

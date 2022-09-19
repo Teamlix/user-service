@@ -10,3 +10,10 @@ grpc:
   server: 
     host: # grpc host
     port: # grpc port
+jwt:
+  access:
+    secret: # secret for access token 
+    expire: # expire for access token, duration
+  refresh:
+    secret: # secret for refresh token
+    expire: # expire for refresh token, duration

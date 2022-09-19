@@ -6,6 +6,7 @@ import (
 	"github.com/teamlix/user-service/internal/domain"
 	"github.com/teamlix/user-service/internal/pkg/mongo"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	drv "go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -48,4 +49,23 @@ func (r *Repository) GetUserByName(ctx context.Context, name string) (*domain.Us
 
 func (r *Repository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
 	return r.getUserByField(ctx, emailField, email)
+}
+
+func (r *Repository) AddUser(ctx context.Context, name, email, password string) (string, error) {
+	user := user{
+		Name:     name,
+		Email:    email,
+		Password: password,
+	}
+	res, err := r.Db.Users.InsertOne(
+		ctx,
+		user,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	id := res.InsertedID.(primitive.ObjectID).Hex()
+
+	return id, nil
 }
