@@ -12,6 +12,7 @@ import (
 
 type UserService interface {
 	SignUp(ctx context.Context, name, email, password, repeatedPassword string) (domain.Tokens, error)
+	SignIn(ctx context.Context, email, password string) (domain.Tokens, error)
 }
 
 type UserServer struct {
@@ -49,17 +50,39 @@ func (us UserServer) SignUp(ctx context.Context, req *user_service.SignUpRequest
 }
 
 func (us UserServer) SignIn(ctx context.Context, req *user_service.SignInRequest) (*user_service.SignInResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SignIn not implemented")
+	email := req.GetEmail()
+	password := req.GetPassword()
+
+	us.logger.Debugf("signin request, email: %s", email)
+
+	t, err := us.service.SignIn(ctx, email, password)
+	if err != nil {
+		us.logger.Errorln("signin error: ", err)
+		return nil, makeStatusError(err)
+	}
+
+	res := user_service.SignInResponse{
+		Result: &user_service.Tokens{
+			AccessToken:  t.AccessToken,
+			RefreshToken: t.RefreshToken,
+		},
+	}
+
+	return &res, nil
 }
+
 func (us UserServer) LogOut(ctx context.Context, req *user_service.LogOutRequest) (*user_service.LogOutResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LogOut not implemented")
 }
+
 func (us UserServer) Refresh(ctx context.Context, req *user_service.RefreshRequest) (*user_service.RefreshResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Refresh not implemented")
 }
+
 func (us UserServer) GetUserByID(ctx context.Context, req *user_service.GetUserByIDRequest) (*user_service.GetUserByIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserByID not implemented")
 }
+
 func (us UserServer) GetUsersList(ctx context.Context, req *user_service.GetUsersListRequest) (*user_service.GetUsersListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUsersList not implemented")
 }
