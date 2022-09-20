@@ -24,6 +24,8 @@ func makeStatusError(e error) error {
 		code = codes.Unauthenticated
 	case "token expired":
 		code = codes.Unauthenticated
+	case "user not found":
+		code = codes.NotFound
 	default:
 		code = codes.Internal
 	}

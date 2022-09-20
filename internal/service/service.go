@@ -29,7 +29,7 @@ type Bcrypt interface {
 
 type Validator interface {
 	ValidateSignUp(email, name, password, repeatedPassword string) error
-	ValidateSignIn(email, password, repeatedPassword string) error
+	ValidateSignIn(email, password string) error
 }
 
 type Tokener interface {
@@ -136,6 +136,60 @@ func (s *Service) SignUp(ctx context.Context, name, email, password, repeatedPas
 	})
 	eg.Go(func() error {
 		return s.cache.SetRefreshToken(ctx, id, refreshToken)
+	})
+	err = eg.Wait()
+	if err != nil {
+		return t, err
+	}
+
+	t.AccessToken = accessToken
+	t.RefreshToken = refreshToken
+
+	return t, nil
+}
+
+func (s *Service) SignIn(ctx context.Context, email, password string) (domain.Tokens, error) {
+	var t domain.Tokens
+
+	err := s.validator.ValidateSignIn(email, password)
+	if err != nil {
+		return t, err
+	}
+
+	user, err := s.repository.GetUserByEmail(ctx, email)
+	if err != nil {
+		return t, err
+	}
+	if user == nil {
+		return t, errors.New("user not found")
+	}
+
+	ok, err := s.bcrypt.CompareHashAndPassword(user.Password, password)
+	if err != nil && !ok {
+		return t, errors.New("user not found")
+	}
+
+	eg := errgroup.Group{}
+	var accessToken, refreshToken string
+	eg.Go(func() error {
+		accessToken, err = s.tokens.SignAccessToken(user.ID, userRole)
+		return err
+	})
+	eg.Go(func() error {
+		refreshToken, err = s.tokens.SignRefreshToken(user.ID)
+		return err
+	})
+	err = eg.Wait()
+	if err != nil {
+		return t, err
+	}
+
+	eg = errgroup.Group{}
+	eg.Go(func() error {
+		return s.cache.SetAccessToken(ctx, user.ID, accessToken)
+	})
+	eg.Go(func() error {
+		return s.cache.SetRefreshToken(ctx, user.ID, refreshToken)
 	})
 	err = eg.Wait()
 	if err != nil {

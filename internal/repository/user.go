@@ -14,8 +14,10 @@ type user struct {
 
 func (u *user) ToDomain() domain.User {
 	user := domain.User{
-		ID:   u.ID.Hex(),
-		Name: u.Name,
+		ID:       u.ID.Hex(),
+		Name:     u.Name,
+		Email:    u.Email,
+		Password: u.Password,
 	}
 
 	return user

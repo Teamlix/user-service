@@ -65,9 +65,20 @@ func (v *Validator) ValidateSignUp(email, name, password, repeatedPassword strin
 	if password != repeatedPassword {
 		return errors.New("passwords are not equal")
 	}
+
 	return nil
 }
 
-func (v *Validator) ValidateSignIn(email, password, repeatedPassword string) error {
+func (v *Validator) ValidateSignIn(email, password string) error {
+	err := v.validateEmail(email)
+	if err != nil {
+		return err
+	}
+
+	err = v.validatePassword(password)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
