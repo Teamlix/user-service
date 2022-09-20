@@ -48,7 +48,7 @@ func Run(configPath string) error {
 		return err
 	}
 
-	c := cache.NewCache(rCon)
+	c := cache.NewCache(rCon, cfg.Jwt.Access.Expire, cfg.Jwt.Refresh.Expire)
 
 	b := bcrypt.NewBcrypt(10)
 

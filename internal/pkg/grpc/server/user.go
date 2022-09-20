@@ -30,8 +30,11 @@ func (us UserServer) SignUp(ctx context.Context, req *user_service.SignUpRequest
 	password := req.GetPassword()
 	repeatedPassword := req.GetRepeatedPassword()
 
+	us.logger.Debugf("signup request, name: %s, email: %s", name, email)
+
 	t, err := us.service.SignUp(ctx, name, email, password, repeatedPassword)
 	if err != nil {
+		us.logger.Errorln("signup error: ", err)
 		return nil, makeStatusError(err)
 	}
 
