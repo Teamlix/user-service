@@ -13,6 +13,7 @@ import (
 type UserService interface {
 	SignUp(ctx context.Context, name, email, password, repeatedPassword string) (domain.Tokens, error)
 	SignIn(ctx context.Context, email, password string) (domain.Tokens, error)
+	Refresh(ctx context.Context, refreshToken string) (domain.Tokens, error)
 }
 
 type UserServer struct {
@@ -76,7 +77,22 @@ func (us UserServer) LogOut(ctx context.Context, req *user_service.LogOutRequest
 }
 
 func (us UserServer) Refresh(ctx context.Context, req *user_service.RefreshRequest) (*user_service.RefreshResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Refresh not implemented")
+	rt := req.GetRefreshToken()
+
+	t, err := us.service.Refresh(ctx, rt)
+	if err != nil {
+		us.logger.Errorln("refresh error: ", err)
+		return nil, makeStatusError(err)
+	}
+
+	res := user_service.RefreshResponse{
+		Result: &user_service.Tokens{
+			AccessToken:  t.AccessToken,
+			RefreshToken: t.RefreshToken,
+		},
+	}
+
+	return &res, nil
 }
 
 func (us UserServer) GetUserByID(ctx context.Context, req *user_service.GetUserByIDRequest) (*user_service.GetUserByIDResponse, error) {
