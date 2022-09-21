@@ -12,6 +12,7 @@ import (
 const userRole = 1
 
 type Repository interface {
+	GetUserByID(ctx context.Context, userID string) (*domain.User, error)
 	GetUserByName(ctx context.Context, name string) (*domain.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	AddUser(ctx context.Context, name, email, password string) (string, error)
@@ -20,6 +21,9 @@ type Repository interface {
 type Cache interface {
 	SetAccessToken(ctx context.Context, userID, token string) error
 	SetRefreshToken(ctx context.Context, userID, token string) error
+	CheckAccessToken(ctx context.Context, userID, token string) (bool, error)
+	CheckRefreshToken(ctx context.Context, userID, token string) (bool, error)
+	RemoveRefreshToken(ctx context.Context, userID, token string) error
 }
 
 type Bcrypt interface {
@@ -190,6 +194,70 @@ func (s *Service) SignIn(ctx context.Context, email, password string) (domain.To
 	})
 	eg.Go(func() error {
 		return s.cache.SetRefreshToken(ctx, user.ID, refreshToken)
+	})
+	err = eg.Wait()
+	if err != nil {
+		return t, err
+	}
+
+	t.AccessToken = accessToken
+	t.RefreshToken = refreshToken
+
+	return t, nil
+}
+
+func (s *Service) Refresh(ctx context.Context, rt string) (domain.Tokens, error) {
+	t := domain.Tokens{}
+
+	userID, err := s.tokens.ValidateRefreshToken(rt)
+	if err != nil {
+		return t, err
+	}
+
+	if userID == "" {
+		return t, errors.New("unauthorized")
+	}
+
+	ok, err := s.cache.CheckRefreshToken(ctx, userID, rt)
+	if err != nil {
+		return t, err
+	}
+	if !ok {
+		return t, errors.New("unauthorized")
+	}
+
+	user, err := s.repository.GetUserByID(ctx, userID)
+	if err != nil {
+		return t, err
+	}
+	if user == nil {
+		return t, errors.New("user not found")
+	}
+
+	eg := errgroup.Group{}
+	var accessToken, refreshToken string
+	eg.Go(func() error {
+		accessToken, err = s.tokens.SignAccessToken(userID, userRole)
+		return err
+	})
+	eg.Go(func() error {
+		refreshToken, err = s.tokens.SignRefreshToken(userID)
+		return err
+	})
+	err = eg.Wait()
+	if err != nil {
+		return t, err
+	}
+
+	eg = errgroup.Group{}
+	eg.Go(func() error {
+		return s.cache.RemoveRefreshToken(ctx, userID, rt)
+	})
+	eg.Go(func() error {
+		return s.cache.SetAccessToken(ctx, userID, accessToken)
+	})
+	eg.Go(func() error {
+		return s.cache.SetRefreshToken(ctx, userID, refreshToken)
 	})
 	err = eg.Wait()
 	if err != nil {

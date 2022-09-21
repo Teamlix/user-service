@@ -43,6 +43,29 @@ func (r *Repository) getUserByField(ctx context.Context, field, value string) (*
 	return &du, nil
 }
 
+func (r *Repository) GetUserByID(ctx context.Context, userID string) (*domain.User, error) {
+	var user user
+	objUserID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.Db.Users.FindOne(
+		ctx,
+		bson.D{{Key: "_id", Value: objUserID}},
+	).Decode(&user)
+	if err != nil {
+		if err == drv.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	du := user.ToDomain()
+
+	return &du, nil
+}
+
 func (r *Repository) GetUserByName(ctx context.Context, name string) (*domain.User, error) {
 	return r.getUserByField(ctx, nameField, name)
 }

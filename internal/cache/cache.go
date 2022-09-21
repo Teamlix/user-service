@@ -27,21 +27,27 @@ func NewCache(redis *redis.Redis, accessDuration, refreshDuration time.Duration)
 	}
 }
 
-func (c *Cache) set(ctx context.Context, key string, value interface{}, dur time.Duration) error {
-	return c.redis.Db.Set(
-		ctx,
-		key,
-		value,
-		dur,
-	).Err()
-}
-
 func (c *Cache) SetAccessToken(ctx context.Context, userID, token string) error {
 	key := fmt.Sprintf("%s:%s:%s", whiteListKey, userID, token)
-	return c.set(ctx, key, nil, c.accessDuration)
+	return c.redis.SetKey(ctx, key, nil, c.accessDuration)
 }
 
 func (c *Cache) SetRefreshToken(ctx context.Context, userID, token string) error {
 	key := fmt.Sprintf("%s:%s:%s", refreshKey, userID, token)
-	return c.set(ctx, key, nil, c.refreshDuration)
+	return c.redis.SetKey(ctx, key, nil, c.refreshDuration)
+}
+
+func (c *Cache) CheckAccessToken(ctx context.Context, userID, token string) (bool, error) {
+	key := fmt.Sprintf("%s:%s:%s", whiteListKey, userID, token)
+	return c.redis.CheckKey(ctx, key)
+}
+
+func (c *Cache) CheckRefreshToken(ctx context.Context, userID, token string) (bool, error) {
+	key := fmt.Sprintf("%s:%s:%s", refreshKey, userID, token)
+	return c.redis.CheckKey(ctx, key)
+}
+
+func (c *Cache) RemoveRefreshToken(ctx context.Context, userID, token string) error {
+	key := fmt.Sprintf("%s:%s:%s", refreshKey, userID, token)
+	return c.redis.DeleteKey(ctx, key)
 }
