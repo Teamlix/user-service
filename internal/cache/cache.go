@@ -51,3 +51,8 @@ func (c *Cache) RemoveRefreshToken(ctx context.Context, userID, token string) er
 	key := fmt.Sprintf("%s:%s:%s", refreshKey, userID, token)
 	return c.redis.DeleteKey(ctx, key)
 }
+
+func (c *Cache) RemoveAccessToken(ctx context.Context, userID, token string) error {
+	key := fmt.Sprintf("%s:%s:%s", whiteListKey, userID, token)
+	return c.redis.DeleteKey(ctx, key)
+}

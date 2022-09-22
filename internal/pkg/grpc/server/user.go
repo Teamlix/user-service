@@ -14,6 +14,7 @@ type UserService interface {
 	SignUp(ctx context.Context, name, email, password, repeatedPassword string) (domain.Tokens, error)
 	SignIn(ctx context.Context, email, password string) (domain.Tokens, error)
 	Refresh(ctx context.Context, refreshToken string) (domain.Tokens, error)
+	LogOut(ctx context.Context, accessToken, refreshToken string) error
 }
 
 type UserServer struct {
@@ -73,7 +74,20 @@ func (us UserServer) SignIn(ctx context.Context, req *user_service.SignInRequest
 }
 
 func (us UserServer) LogOut(ctx context.Context, req *user_service.LogOutRequest) (*user_service.LogOutResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LogOut not implemented")
+	at := req.GetAccessToken()
+	rt := req.GetRefreshToken()
+
+	err := us.service.LogOut(ctx, at, rt)
+	if err != nil {
+		us.logger.Errorln("logout error: ", err)
+		return nil, makeStatusError(err)
+	}
+
+	res := user_service.LogOutResponse{
+		Result: true,
+	}
+
+	return &res, nil
 }
 
 func (us UserServer) Refresh(ctx context.Context, req *user_service.RefreshRequest) (*user_service.RefreshResponse, error) {
