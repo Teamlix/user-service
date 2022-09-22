@@ -2,6 +2,10 @@ github.com/BurntSushi/toml v1.1.0 h1:ksErzDEI1khOiGPgpwuI7x2ebx/uXQNw7xJpn9Eq1+I
 github.com/BurntSushi/toml v1.1.0/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/Teamlix/proto v0.1.0 h1:Zh+f7X5MpGRAM0aDCfn0tUFTFDO5HxNfvo8pqe+3ymg=
 github.com/Teamlix/proto v0.1.0/go.mod h1:pYvK8Defd4EWu6DiD2C592LOr3aB//nj199WmJfusS8=
+github.com/Teamlix/proto v0.1.1 h1:y7+G9/3C0BvfmROBBqb8tbEb25yMjagkWQUfhDkPzN0=
+github.com/Teamlix/proto v0.1.1/go.mod h1:pYvK8Defd4EWu6DiD2C592LOr3aB//nj199WmJfusS8=
+github.com/Teamlix/proto v0.1.2 h1:SD8mBf1CqREowfoQlLxrsl8m+6wXv97G+JnuXDcITtI=
+github.com/Teamlix/proto v0.1.2/go.mod h1:pYvK8Defd4EWu6DiD2C592LOr3aB//nj199WmJfusS8=
 github.com/cespare/xxhash/v2 v2.1.2 h1:YRXhKfTDauu4ajMg1TPgFO5jnlC2HCbmLXMcTG5cbYE=
 github.com/cespare/xxhash/v2 v2.1.2/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

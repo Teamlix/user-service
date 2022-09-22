@@ -23,6 +23,7 @@ type Cache interface {
 	SetRefreshToken(ctx context.Context, userID, token string) error
 	CheckAccessToken(ctx context.Context, userID, token string) (bool, error)
 	CheckRefreshToken(ctx context.Context, userID, token string) (bool, error)
+	RemoveAccessToken(ctx context.Context, userID, token string) error
 	RemoveRefreshToken(ctx context.Context, userID, token string) error
 }
 
@@ -215,7 +216,7 @@ func (s *Service) Refresh(ctx context.Context, rt string) (domain.Tokens, error)
 	}
 
 	if userID == "" {
-		return t, errors.New("unauthorized")
+		return t, errors.New("user not found")
 	}
 
 	ok, err := s.cache.CheckRefreshToken(ctx, userID, rt)
@@ -268,4 +269,37 @@ func (s *Service) Refresh(ctx context.Context, rt string) (domain.Tokens, error)
 	t.RefreshToken = refreshToken
 
 	return t, nil
+}
+
+func (s *Service) LogOut(ctx context.Context, accessToken, refreshToken string) error {
+	userID, err := s.tokens.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		return err
+	}
+
+	if userID == "" {
+		return errors.New("user not found")
+	}
+
+	ok, err := s.cache.CheckRefreshToken(ctx, userID, refreshToken)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return errors.New("unauthorized")
+	}
+
+	eg := errgroup.Group{}
+	eg.Go(func() error {
+		return s.cache.RemoveAccessToken(ctx, userID, accessToken)
+	})
+	eg.Go(func() error {
+		return s.cache.RemoveRefreshToken(ctx, userID, refreshToken)
+	})
+	err = eg.Wait()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
