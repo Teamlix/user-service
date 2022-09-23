@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	drv "go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -92,4 +93,49 @@ func (r *Repository) AddUser(ctx context.Context, name, email, password string) 
 	id := res.InsertedID.(primitive.ObjectID).Hex()
 
 	return id, nil
+}
+
+func (r *Repository) GetUsersTotalCount(ctx context.Context) (int, error) {
+	cnt, err := r.Db.Users.CountDocuments(ctx, bson.D{})
+	if err != nil {
+		return 0, err
+	}
+
+	return int(cnt), nil
+}
+
+func (r *Repository) GetUsers(ctx context.Context, skip, limit int) ([]domain.User, error) {
+	res := make([]domain.User, 0)
+	opts := options.Find().
+		SetSort(bson.D{{Key: "_id", Value: -1}}).
+		SetSkip(int64(skip)).
+		SetLimit(int64(limit))
+
+	cur, err := r.Db.Users.Find(
+		ctx,
+		bson.D{},
+		opts,
+	)
+	if err != nil {
+		return res, err
+	}
+
+	for cur.Next(ctx) {
+		var result user
+		err = cur.Decode(&result)
+		if err != nil {
+			return res, err
+		}
+		res = append(res, result.ToDomain())
+	}
+	if err = cur.Err(); err != nil {
+		return res, err
+	}
+
+	err = cur.Close(ctx)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
 }

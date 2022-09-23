@@ -16,6 +16,8 @@ type Repository interface {
 	GetUserByName(ctx context.Context, name string) (*domain.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	AddUser(ctx context.Context, name, email, password string) (string, error)
+	GetUsersTotalCount(ctx context.Context) (int, error)
+	GetUsers(ctx context.Context, skip, limit int) ([]domain.User, error)
 }
 
 type Cache interface {
@@ -36,6 +38,7 @@ type Validator interface {
 	ValidateSignUp(email, name, password, repeatedPassword string) error
 	ValidateSignIn(email, password string) error
 	ValidateGetUserByID(userID string) error
+	ValidateGetUsersList(skip, limit int) error
 }
 
 type Tokener interface {
@@ -321,4 +324,36 @@ func (s *Service) GetUserByID(ctx context.Context, userID string) (domain.User, 
 	}
 
 	return *user, nil
+}
+
+func (s *Service) GetUsersList(ctx context.Context, skip, limit int) ([]domain.User, int, error) {
+	users := make([]domain.User, 0)
+	cnt := 0
+
+	if err := s.validator.ValidateGetUsersList(skip, limit); err != nil {
+		return users, cnt, err
+	}
+
+	eg := errgroup.Group{}
+	eg.Go(func() error {
+		ul, err := s.repository.GetUsers(ctx, skip, limit)
+		if err != nil {
+			return err
+		}
+		users = ul
+		return nil
+	})
+	eg.Go(func() error {
+		c, err := s.repository.GetUsersTotalCount(ctx)
+		if err != nil {
+			return err
+		}
+		cnt = c
+		return nil
+	})
+	if err := eg.Wait(); err != nil {
+		return users, cnt, err
+	}
+
+	return users, cnt, nil
 }
