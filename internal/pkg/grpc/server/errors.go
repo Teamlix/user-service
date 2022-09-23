@@ -26,6 +26,8 @@ func makeStatusError(e error) error {
 		code = codes.Unauthenticated
 	case "user not found":
 		code = codes.NotFound
+	case "wrong userID":
+		code = codes.InvalidArgument
 	default:
 		code = codes.Internal
 	}
