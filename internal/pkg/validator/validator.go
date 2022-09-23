@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/mail"
 	"unicode/utf8"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -80,5 +82,13 @@ func (v *Validator) ValidateSignIn(email, password string) error {
 		return err
 	}
 
+	return nil
+}
+
+func (v *Validator) ValidateGetUserByID(userID string) error {
+	ok := primitive.IsValidObjectID(userID)
+	if !ok {
+		return errors.New("wrong userID")
+	}
 	return nil
 }

@@ -35,6 +35,7 @@ type Bcrypt interface {
 type Validator interface {
 	ValidateSignUp(email, name, password, repeatedPassword string) error
 	ValidateSignIn(email, password string) error
+	ValidateGetUserByID(userID string) error
 }
 
 type Tokener interface {
@@ -302,4 +303,22 @@ func (s *Service) LogOut(ctx context.Context, accessToken, refreshToken string) 
 	}
 
 	return nil
+}
+
+func (s *Service) GetUserByID(ctx context.Context, userID string) (domain.User, error) {
+	u := domain.User{}
+
+	if err := s.validator.ValidateGetUserByID(userID); err != nil {
+		return u, err
+	}
+
+	user, err := s.repository.GetUserByID(ctx, userID)
+	if err != nil {
+		return u, err
+	}
+	if user == nil {
+		return u, errors.New("user not found")
+	}
+
+	return *user, nil
 }

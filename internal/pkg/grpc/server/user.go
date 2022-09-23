@@ -15,6 +15,7 @@ type UserService interface {
 	SignIn(ctx context.Context, email, password string) (domain.Tokens, error)
 	Refresh(ctx context.Context, refreshToken string) (domain.Tokens, error)
 	LogOut(ctx context.Context, accessToken, refreshToken string) error
+	GetUserByID(ctx context.Context, userID string) (domain.User, error)
 }
 
 type UserServer struct {
@@ -110,7 +111,22 @@ func (us UserServer) Refresh(ctx context.Context, req *user_service.RefreshReque
 }
 
 func (us UserServer) GetUserByID(ctx context.Context, req *user_service.GetUserByIDRequest) (*user_service.GetUserByIDResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserByID not implemented")
+	userID := req.GetUserId()
+
+	u, err := us.service.GetUserByID(ctx, userID)
+	if err != nil {
+		us.logger.Errorln("get user by id error: ", err)
+		return nil, makeStatusError(err)
+	}
+
+	res := user_service.GetUserByIDResponse{
+		Result: &user_service.User{
+			Id:   u.ID,
+			Name: u.Name,
+		},
+	}
+
+	return &res, nil
 }
 
 func (us UserServer) GetUsersList(ctx context.Context, req *user_service.GetUsersListRequest) (*user_service.GetUsersListResponse, error) {
