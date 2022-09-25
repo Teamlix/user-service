@@ -92,3 +92,11 @@ func (v *Validator) ValidateGetUserByID(userID string) error {
 	}
 	return nil
 }
+
+func (v *Validator) ValidateGetUsersList(skip, limit int) error {
+	if skip < 0 || limit <= 0 {
+		return errors.New("invalid payload")
+	}
+
+	return nil
+}

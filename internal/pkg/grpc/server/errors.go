@@ -28,6 +28,8 @@ func makeStatusError(e error) error {
 		code = codes.NotFound
 	case "wrong userID":
 		code = codes.InvalidArgument
+	case "invalid payload":
+		code = codes.InvalidArgument
 	default:
 		code = codes.Internal
 	}

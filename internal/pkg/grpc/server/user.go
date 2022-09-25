@@ -6,8 +6,6 @@ import (
 	"github.com/Teamlix/proto/gen/go/user_service/v1"
 	"github.com/sirupsen/logrus"
 	"github.com/teamlix/user-service/internal/domain"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type UserService interface {
@@ -16,6 +14,7 @@ type UserService interface {
 	Refresh(ctx context.Context, refreshToken string) (domain.Tokens, error)
 	LogOut(ctx context.Context, accessToken, refreshToken string) error
 	GetUserByID(ctx context.Context, userID string) (domain.User, error)
+	GetUsersList(ctx context.Context, skip, limit int) ([]domain.User, int, error)
 }
 
 type UserServer struct {
@@ -130,5 +129,31 @@ func (us UserServer) GetUserByID(ctx context.Context, req *user_service.GetUserB
 }
 
 func (us UserServer) GetUsersList(ctx context.Context, req *user_service.GetUsersListRequest) (*user_service.GetUsersListResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUsersList not implemented")
+	skip := req.GetSkip()
+	limit := req.GetLimit()
+
+	us.logger.Debugf("get users list request, skip: %d, limit: %d", skip, limit)
+	ul, cnt, err := us.service.GetUsersList(ctx, int(skip), int(limit))
+	if err != nil {
+		us.logger.Errorln("get users list error: ", err)
+		return nil, makeStatusError(err)
+	}
+
+	resUsers := make([]*user_service.User, 0)
+	for _, u := range ul {
+		el := user_service.User{
+			Id:   u.ID,
+			Name: u.Name,
+		}
+		resUsers = append(resUsers, &el)
+	}
+
+	res := user_service.GetUsersListResponse{
+		Result: &user_service.GetUsersListResponse_Result{
+			Data:       resUsers,
+			TotalCount: uint32(cnt),
+		},
+	}
+
+	return &res, nil
 }
