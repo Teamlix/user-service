@@ -15,6 +15,7 @@ type UserService interface {
 	LogOut(ctx context.Context, accessToken, refreshToken string) error
 	GetUserByID(ctx context.Context, userID string) (domain.User, error)
 	GetUsersList(ctx context.Context, skip, limit int) ([]domain.User, int, error)
+	CheckAccessToken(ctx context.Context, accessToken string) error
 }
 
 type UserServer struct {
@@ -153,6 +154,22 @@ func (us UserServer) GetUsersList(ctx context.Context, req *user_service.GetUser
 			Data:       resUsers,
 			TotalCount: uint32(cnt),
 		},
+	}
+
+	return &res, nil
+}
+
+func (us UserServer) CheckAccessToken(ctx context.Context, req *user_service.CheckAccessTokenRequest) (*user_service.CheckAccessTokenResponse, error) {
+	at := req.GetAccessToken()
+
+	err := us.service.CheckAccessToken(ctx, at)
+	if err != nil {
+		us.logger.Errorln("check access token error: ", err)
+		return nil, makeStatusError(err)
+	}
+
+	res := user_service.CheckAccessTokenResponse{
+		Result: true,
 	}
 
 	return &res, nil

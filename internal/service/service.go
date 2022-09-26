@@ -357,3 +357,23 @@ func (s *Service) GetUsersList(ctx context.Context, skip, limit int) ([]domain.U
 
 	return users, cnt, nil
 }
+
+func (s *Service) CheckAccessToken(ctx context.Context, accessToken string) error {
+	userID, _, err := s.tokens.ValidateAccessToken(accessToken)
+	if err != nil {
+		return err
+	}
+
+	if userID == "" {
+		return errors.New("user not found")
+	}
+
+	ok, err := s.cache.CheckAccessToken(ctx, userID, accessToken)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return errors.New("unauthorized")
+	}
+	return nil
+}
