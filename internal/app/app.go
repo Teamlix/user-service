@@ -20,6 +20,15 @@ import (
 	"github.com/teamlix/user-service/internal/service"
 )
 
+type authh struct{}
+
+func newA() authh {
+	return authh{}
+}
+func (a authh) CheckAccessToken(ctx context.Context) error {
+	return nil
+}
+
 func Run(configPath string) error {
 	errCh := make(chan error, 1)
 	ctx := context.Background()
@@ -58,6 +67,8 @@ func Run(configPath string) error {
 
 	s := service.NewService(repo, c, b, v, t)
 
+	au := newA()
+
 	// run grpc server
 	go func() {
 		grpcsrv = grpc_server.NewServer(
@@ -65,6 +76,7 @@ func Run(configPath string) error {
 			cfg.Grpc.Server.Port,
 			s,
 			logger,
+			au,
 		)
 		err := grpcsrv.Serve()
 		if err != nil {

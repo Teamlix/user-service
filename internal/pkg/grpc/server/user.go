@@ -2,6 +2,7 @@ package grpc_server
 
 import (
 	"context"
+	"log"
 
 	"github.com/Teamlix/proto/gen/go/user_service/v1"
 	"github.com/sirupsen/logrus"
@@ -18,14 +19,37 @@ type UserService interface {
 	CheckAccessToken(ctx context.Context, accessToken string) error
 }
 
-type UserServer struct {
-	user_service.UnimplementedUserServiceServer
-	service UserService
-	logger  *logrus.Logger
+type AuthLib interface {
+	CheckAccessToken(ctx context.Context) error
 }
 
-func newUserServer(service UserService, logger *logrus.Logger) UserServer {
-	return UserServer{service: service, logger: logger}
+type UserServer struct {
+	user_service.UnimplementedUserServiceServer
+	service       UserService
+	logger        *logrus.Logger
+	auth          AuthLib
+	publicMethods map[string]struct{}
+}
+
+func newUserServer(service UserService, logger *logrus.Logger, auth AuthLib) UserServer {
+	publicMethods := make(map[string]struct{})
+	publicMethods["/user_service.v1.UserService/SignUp"] = struct{}{}
+	publicMethods["/user_service.v1.UserService/SignIn"] = struct{}{}
+	publicMethods["/user_service.v1.UserService/GetUserByID"] = struct{}{}
+	publicMethods["/user_service.v1.UserService/GetUsersList"] = struct{}{}
+
+	return UserServer{service: service, logger: logger, publicMethods: publicMethods, auth: auth}
+}
+
+func (us UserServer) AuthFuncOverride(ctx context.Context, fullMethodName string) (context.Context, error) {
+	log.Println("client is calling method:", fullMethodName)
+	if _, ok := us.publicMethods[fullMethodName]; !ok {
+		err := us.auth.CheckAccessToken(ctx)
+		if err != nil {
+			return ctx, err
+		}
+	}
+	return ctx, nil
 }
 
 func (us UserServer) SignUp(ctx context.Context, req *user_service.SignUpRequest) (*user_service.SignUpResponse, error) {
