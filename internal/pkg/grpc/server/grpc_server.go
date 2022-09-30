@@ -19,7 +19,7 @@ type Server struct {
 	host    string
 	port    string
 	server  *grpc.Server
-	service UserService
+	service Service
 	logger  *logrus.Logger
 	clients *grpc_clients.Clients
 }
@@ -27,7 +27,7 @@ type Server struct {
 func NewServer(
 	host string,
 	port string,
-	service UserService,
+	service Service,
 	logger *logrus.Logger,
 	clients *grpc_clients.Clients,
 ) Server {

@@ -9,10 +9,8 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 	grpc_clients "github.com/teamlix/grpc-clients"
 	"github.com/teamlix/user-service/internal/cache"
-	"github.com/teamlix/user-service/internal/pkg/bcrypt"
 	"github.com/teamlix/user-service/internal/pkg/config"
 	grpc_server "github.com/teamlix/user-service/internal/pkg/grpc/server"
-	"github.com/teamlix/user-service/internal/pkg/jwt"
 	log "github.com/teamlix/user-service/internal/pkg/logger"
 	"github.com/teamlix/user-service/internal/pkg/mongo"
 	"github.com/teamlix/user-service/internal/pkg/redis"
@@ -54,15 +52,11 @@ func Run(configPath string) error {
 		return err
 	}
 
-	c := cache.NewCache(rCon, cfg.Jwt.Access.Expire, cfg.Jwt.Refresh.Expire)
-
-	b := bcrypt.NewBcrypt(10)
+	c := cache.NewCache(rCon)
 
 	v := validator.NewValidator()
 
-	t := jwt.NewJWT(cfg.Jwt.Access.Secret, cfg.Jwt.Refresh.Secret, cfg.Jwt.Access.Expire, cfg.Jwt.Refresh.Expire)
-
-	s := service.NewService(repo, c, b, v, t)
+	s := service.NewService(repo, c, v)
 
 	// run grpc server
 	go func() {

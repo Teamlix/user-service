@@ -1,7 +1,5 @@
 package config
 
-import "time"
-
 type Config struct {
 	App   struct{} `yaml:"app"`
 	Redis struct {
@@ -22,14 +20,4 @@ type Config struct {
 			User string `yaml:"user" env:"GRPC_CLIENT_USER_SERVICE_URL" env-description:"gRPC client for user-service"`
 		} `yaml:"client"`
 	} `yaml:"grpc"`
-	Jwt struct {
-		Access struct {
-			Secret string        `yaml:"secret" env:"JWT_ACCESS_SECRET" env-description:"access token secret"`
-			Expire time.Duration `yaml:"expire" env:"JWT_ACCESS_EXPIRE" env-description:"access token expire"`
-		} `yaml:"access"`
-		Refresh struct {
-			Secret string        `yaml:"secret" env:"JWT_REFRESH_SECRET" env-description:"refresh token secret"`
-			Expire time.Duration `yaml:"expire" env:"JWT_REFRESH_EXPIRE" env-description:"refresh token expire"`
-		} `yaml:"refresh"`
-	} `yaml:"jwt"`
 }
