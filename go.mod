@@ -7,7 +7,10 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 )
 
-require golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e // indirect
+require (
+	github.com/teamlix/grpc-clients v0.0.1 // indirect
+	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e // indirect
+)
 
 require (
 	github.com/BurntSushi/toml v1.1.0 // indirect

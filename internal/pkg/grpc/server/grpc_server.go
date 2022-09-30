@@ -9,6 +9,7 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/sirupsen/logrus"
+	grpc_clients "github.com/teamlix/grpc-clients"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -20,7 +21,7 @@ type Server struct {
 	server  *grpc.Server
 	service UserService
 	logger  *logrus.Logger
-	auth    AuthLib
+	clients *grpc_clients.Clients
 }
 
 func NewServer(
@@ -28,7 +29,7 @@ func NewServer(
 	port string,
 	service UserService,
 	logger *logrus.Logger,
-	a AuthLib,
+	clients *grpc_clients.Clients,
 ) Server {
 	return Server{
 		host: host,
@@ -42,6 +43,7 @@ func NewServer(
 		),
 		service: service,
 		logger:  logger,
+		clients: clients,
 	}
 }
 
@@ -51,7 +53,7 @@ func (s *Server) Serve() error {
 		return fmt.Errorf("can't start listening addr: %w", err)
 	}
 	grpc_health_v1.RegisterHealthServer(s.server, health.NewServer())
-	user_service.RegisterUserServiceServer(s.server, newUserServer(s.service, s.logger, s.auth))
+	user_service.RegisterUserServiceServer(s.server, newUserServer(s.service, s.logger, s.clients))
 	err = s.server.Serve(lis)
 
 	if err != nil {

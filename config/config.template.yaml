@@ -10,6 +10,8 @@ grpc:
   server: 
     host: # grpc host
     port: # grpc port
+  client:
+    user: # ex. localhost:8081
 jwt:
   access:
     secret: # secret for access token 
