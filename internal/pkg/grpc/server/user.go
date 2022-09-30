@@ -2,11 +2,14 @@ package grpc_server
 
 import (
 	"context"
-	"log"
 
 	"github.com/Teamlix/proto/gen/go/user_service/v1"
+	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/sirupsen/logrus"
+	grpc_clients "github.com/teamlix/grpc-clients"
 	"github.com/teamlix/user-service/internal/domain"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type UserService interface {
@@ -19,34 +22,39 @@ type UserService interface {
 	CheckAccessToken(ctx context.Context, accessToken string) error
 }
 
-type AuthLib interface {
-	CheckAccessToken(ctx context.Context) error
-}
-
 type UserServer struct {
 	user_service.UnimplementedUserServiceServer
 	service       UserService
 	logger        *logrus.Logger
-	auth          AuthLib
+	clients       *grpc_clients.Clients
 	publicMethods map[string]struct{}
 }
 
-func newUserServer(service UserService, logger *logrus.Logger, auth AuthLib) UserServer {
+func newUserServer(service UserService, logger *logrus.Logger, clients *grpc_clients.Clients) UserServer {
 	publicMethods := make(map[string]struct{})
 	publicMethods["/user_service.v1.UserService/SignUp"] = struct{}{}
 	publicMethods["/user_service.v1.UserService/SignIn"] = struct{}{}
 	publicMethods["/user_service.v1.UserService/GetUserByID"] = struct{}{}
 	publicMethods["/user_service.v1.UserService/GetUsersList"] = struct{}{}
 
-	return UserServer{service: service, logger: logger, publicMethods: publicMethods, auth: auth}
+	// non gateway methods
+	publicMethods["/user_service.v1.UserService/CheckAccessToken"] = struct{}{}
+
+	return UserServer{service: service, logger: logger, publicMethods: publicMethods, clients: clients}
 }
 
 func (us UserServer) AuthFuncOverride(ctx context.Context, fullMethodName string) (context.Context, error) {
-	log.Println("client is calling method:", fullMethodName)
 	if _, ok := us.publicMethods[fullMethodName]; !ok {
-		err := us.auth.CheckAccessToken(ctx)
+		token, err := grpc_auth.AuthFromMD(ctx, "bearer")
 		if err != nil {
 			return ctx, err
+		}
+		ok, err := us.clients.User.CheckAccessToken(ctx, token)
+		if err != nil {
+			return ctx, err
+		}
+		if !ok {
+			return ctx, status.Errorf(codes.Unauthenticated, "bad authorization string")
 		}
 	}
 	return ctx, nil

@@ -18,6 +18,9 @@ type Config struct {
 			Host string `yaml:"host" env:"GRPC_HOST" env-description:"gRPC host"`
 			Port string `yaml:"port" env:"GRPC_PORT" env-description:"gRPC port"`
 		} `yaml:"server"`
+		Client struct {
+			User string `yaml:"user" env:"GRPC_CLIENT_USER_SERVICE_URL" env-description:"gRPC client for user-service"`
+		} `yaml:"client"`
 	} `yaml:"grpc"`
 	Jwt struct {
 		Access struct {

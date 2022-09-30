@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	grpc_clients "github.com/teamlix/grpc-clients"
 	"github.com/teamlix/user-service/internal/cache"
 	"github.com/teamlix/user-service/internal/pkg/bcrypt"
 	"github.com/teamlix/user-service/internal/pkg/config"
@@ -19,15 +20,6 @@ import (
 	"github.com/teamlix/user-service/internal/repository"
 	"github.com/teamlix/user-service/internal/service"
 )
-
-type authh struct{}
-
-func newA() authh {
-	return authh{}
-}
-func (a authh) CheckAccessToken(ctx context.Context) error {
-	return nil
-}
 
 func Run(configPath string) error {
 	errCh := make(chan error, 1)
@@ -57,6 +49,11 @@ func Run(configPath string) error {
 		return err
 	}
 
+	clients, err := grpc_clients.NewClients(cfg.Grpc.Client.User)
+	if err != nil {
+		return err
+	}
+
 	c := cache.NewCache(rCon, cfg.Jwt.Access.Expire, cfg.Jwt.Refresh.Expire)
 
 	b := bcrypt.NewBcrypt(10)
@@ -67,8 +64,6 @@ func Run(configPath string) error {
 
 	s := service.NewService(repo, c, b, v, t)
 
-	au := newA()
-
 	// run grpc server
 	go func() {
 		grpcsrv = grpc_server.NewServer(
@@ -76,7 +71,7 @@ func Run(configPath string) error {
 			cfg.Grpc.Server.Port,
 			s,
 			logger,
-			au,
+			clients,
 		)
 		err := grpcsrv.Serve()
 		if err != nil {
